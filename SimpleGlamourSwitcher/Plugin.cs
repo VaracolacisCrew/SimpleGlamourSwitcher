@@ -89,6 +89,11 @@ public class Plugin : IDalamudPlugin {
                 DebugWindow.IsOpen = true;
             }
 #endif
+            
+            if (PluginConfig.EquippedWindowConfig.WindowOpen) {
+                ActiveWindow.IsOpen = true;
+            }
+            
         }, delayTicks: 3);
         
         
@@ -174,16 +179,17 @@ public class Plugin : IDalamudPlugin {
                         MainWindow.IsOpen = true;
                         MainWindow.OpenPage(new EditOutfitPage(ActiveCharacter, Guid.Empty, null));
                         break;
-                    case "active":
-                        ActiveWindow.IsOpen = true;
-                        break;
                 }
             }
         }, delayTicks: 1);
     }
     #endif
 
+    
+    
+    public static bool IsDisposing { get; private set; }
     public void Dispose() {
+        IsDisposing = true;
         Commands.RemoveHandler("/sgs");
         MainWindow.IsOpen = false;
         ActiveWindow.IsOpen = false;

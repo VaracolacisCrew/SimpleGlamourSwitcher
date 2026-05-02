@@ -121,7 +121,7 @@ public class ConfigWindow : Window {
         }
 
         #if DEBUG
-        var debugPages = new[] { "none", "automation", "outfit", "active" };
+        var debugPages = new[] { "none", "automation", "outfit" };
         var debugPage = debugPages.IndexOf(PluginConfig.DebugDefaultPage);
         if (debugPage < 0) {
             debugPage = 0;

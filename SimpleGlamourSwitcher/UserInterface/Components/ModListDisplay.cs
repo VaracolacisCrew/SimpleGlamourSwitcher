@@ -26,6 +26,38 @@ public static class ModListDisplay {
         }
         return true;
     }
+
+    public static void ShowModLinkButton(IHasModConfigs modable) {
+        
+        if (modable.ModConfigs.Count == 1) {
+            ImGui.SameLine();
+            using (ImRaii.PushFont(UiBuilder.IconFont)) {
+                if (ImGui.Button("##modLink", new Vector2(ImGui.GetTextLineHeight() + ImGui.GetStyle().FramePadding.Y * 2))) {
+                    ShowPenumbraWindow(TabType.Mods, modable.ModConfigs[0].ModDirectory);
+                }
+                ImGui.GetWindowDrawList().AddText(UiBuilder.IconFont, ImGui.GetFontSize(), ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding, ImGui.GetColorU32(ImGuiCol.Text), FontAwesomeIcon.Link.ToIconString());
+            }
+        } else if (modable.ModConfigs.Count > 1) {
+            ImGui.SameLine();
+            bool comboOpen;
+            using (ImRaii.PushColor(ImGuiCol.Text, Vector4.Zero)) {
+                comboOpen = ImGui.BeginCombo("##multiModLink", "", ImGuiComboFlags.NoPreview);
+            }
+
+            if (comboOpen) {
+                foreach (var config in modable.ModConfigs) {
+                    if (!ImGui.Selectable(config.ModDirectory + $"##{config.ModDirectory}")) continue;
+                    ShowPenumbraWindow(TabType.Mods, config.ModDirectory);
+                }
+
+                ImGui.EndCombo();
+            }
+
+            ImGui.GetWindowDrawList().AddText(UiBuilder.IconFont, ImGui.GetFontSize(), ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding, ImGui.GetColorU32(ImGuiCol.Text), FontAwesomeIcon.Link.ToIconString());
+        }
+        
+        
+    }
     
     public static bool Show(IHasModConfigs modable, string slotName, float width = -1, bool displayOnly = false, bool includeCustomizePlus = true) {
         var edited = false;
@@ -87,32 +119,10 @@ public static class ModListDisplay {
 
                     if (configs.Count > 1 && ImGui.GetIO().KeyShift == false) ImGui.TextDisabled("Hold SHIFT to show mod settings.");
                 }
+
+
+            ShowModLinkButton(modable);
             
-            ImGui.SameLine();
-            if (configs.Count == 1) {
-                using (ImRaii.PushFont(UiBuilder.IconFont)) {
-                    if (ImGui.Button("##modLink", _buttonSize)) {
-                        ShowPenumbraWindow(TabType.Mods, configs[0].ModDirectory);
-                    }
-                    ImGui.GetWindowDrawList().AddText(UiBuilder.IconFont, ImGui.GetFontSize(), ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding, ImGui.GetColorU32(ImGuiCol.Text), FontAwesomeIcon.Link.ToIconString());
-                }
-            } else {
-                bool comboOpen;
-                using (ImRaii.PushColor(ImGuiCol.Text, Vector4.Zero)) {
-                    comboOpen = ImGui.BeginCombo("##multiModLink", "", ImGuiComboFlags.NoPreview);
-                }
-
-                if (comboOpen) {
-                    foreach (var config in configs) {
-                        if (!ImGui.Selectable(config.ModDirectory + $"##{config.ModDirectory}")) continue;
-                        ShowPenumbraWindow(TabType.Mods, config.ModDirectory);
-                    }
-
-                    ImGui.EndCombo();
-                }
-
-                ImGui.GetWindowDrawList().AddText(UiBuilder.IconFont, ImGui.GetFontSize(), ImGui.GetItemRectMin() + ImGui.GetStyle().FramePadding, ImGui.GetColorU32(ImGuiCol.Text), FontAwesomeIcon.Link.ToIconString());
-            }
             
         } else {
             ImGui.SetNextItemWidth(width - ImGui.GetStyle().ItemSpacing.X * extraButtons - _buttonSize.X * extraButtons);

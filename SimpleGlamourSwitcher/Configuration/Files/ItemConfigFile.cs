@@ -5,6 +5,7 @@ using Dalamud.Interface.Textures.TextureWraps;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
+using Penumbra.GameData;
 using Penumbra.GameData.Enums;
 using SimpleGlamourSwitcher.Configuration.ConfigSystem;
 using SimpleGlamourSwitcher.Configuration.Interface;
@@ -83,6 +84,25 @@ public class ItemConfigFile : ConfigFile<ItemConfigFile, CharacterConfigFile>, I
 
     public static ItemConfigFile CreateFromLocalPlayer(CharacterConfigFile character, Guid folderGuid, IDefaultOutfitOptionsProvider? defaultOptionsProvider = null) {
         return Create(character, folderGuid);
+    }
+
+    public static ItemConfigFile CreateFromLocalPlayer(CharacterConfigFile character, Guid folderGuid, HumanSlot slot, IDefaultOutfitOptionsProvider? defaultOutfitOptionsProvider = null) {
+        var item = Create(character, folderGuid);
+        item.Slot = slot;
+        
+        var glamourerState = GlamourerIpc.GetState(0);
+        if (glamourerState == null) return item;
+        var penumbraCollection = PenumbraIpc.GetCollectionForObject.Invoke(0);
+        
+        if (slot is HumanSlot.Face) {
+            item.Item = ApplicableBonus.FromExistingState(defaultOutfitOptionsProvider ?? character.GetOptionsProvider(folderGuid), slot, glamourerState.Bonus, glamourerState.Materials, penumbraCollection.EffectiveCollection.Id);
+        } else {
+            var equip = glamourerState.Equipment.Items.FirstOrNull(i => i.slot == slot.ToEquipSlot());
+            if (equip == null) return item;
+            item.Item = ApplicableEquipment.FromExistingState(defaultOutfitOptionsProvider ?? character.GetOptionsProvider(folderGuid), slot, equip.Value.Item2, glamourerState.Materials, penumbraCollection.EffectiveCollection.Id);
+        }
+
+        return item;
     }
 
     protected override void Setup() {

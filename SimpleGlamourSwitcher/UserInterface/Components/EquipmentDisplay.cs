@@ -10,6 +10,7 @@ using SimpleGlamourSwitcher.Configuration.Files;
 using SimpleGlamourSwitcher.Configuration.Parts;
 using SimpleGlamourSwitcher.Configuration.Parts.ApplicableParts;
 using SimpleGlamourSwitcher.Service;
+using SimpleGlamourSwitcher.UserInterface.Page;
 using SimpleGlamourSwitcher.Utility;
 using ItemManager = SimpleGlamourSwitcher.Service.ItemManager;
 
@@ -23,8 +24,11 @@ public enum EquipmentDisplayFlags : uint {
     NoModEditing = 4,
     ContextNoSetToCurrent = 8,
     ContextNoClearSlot = 16,
+    ContextShowSaveSlot = 32,
+    EnableCustomItemPicker = 64,
+    Compact = 128,
     
-    EnableCustomItemPicker = 32,
+
     Simple = NoApplyToggles | NoCustomizePlus | NoModEditing | ContextNoSetToCurrent,
 }
 
@@ -89,6 +93,8 @@ public static class EquipmentDisplay {
         
         dirty |= ShowSlot(equip, slot, !equipment.Apply, flags, character, folderGuid);
 
+        if (flags.HasFlag(EquipmentDisplayFlags.Compact)) return dirty;
+        
         if (slot == HumanSlot.Head) {
             ImGui.SameLine();
             using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
@@ -117,9 +123,54 @@ public static class EquipmentDisplay {
     private static bool ShowSlot(HumanSlot slot, ApplicableItem<HumanSlot> equipment, EquipmentDisplayFlags flags, CharacterConfigFile? character, Guid? folderGuid) {
         var dirty = false;
         var equipItem = equipment.GetEquipItem(slot);
+
+        
         using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.One))
         using (ImRaii.PushId($"State_{slot}")) {
             var s = new Vector2(300 * ImGuiHelpers.GlobalScale, ImGui.GetTextLineHeight() + ImGui.GetStyle().FramePadding.Y * 2);
+
+
+            void DrawDyePicker(bool vertical) {
+                if (equipment is ApplicableEquipment ae) {
+                    using (ImRaii.Group()) {
+                        dirty |= StainPicker.Show($"{slot}, Stain 1##{slot}_stain1", ref ae.Stain.Stain, new Vector2(s.Y));
+                        if (!vertical) ImGui.SameLine();
+                        dirty |= StainPicker.Show($"{slot}, Stain 2##{slot}_stain2", ref ae.Stain.Stain2, new Vector2(s.Y));
+                    }
+                }
+            }
+            
+            void DrawInputs() {
+                using (ImRaii.Group()) {
+                    ImGui.SetNextItemWidth(s.X - s.Y + ImGui.GetStyle().ItemSpacing.X - (equipment is ApplicableEquipment ? s.Y * 2 + ImGui.GetStyle().ItemSpacing.X * 2 : 0));
+
+                    ImGui.BeginGroup();
+
+                    if (equipment is ApplicableEquipment applicableEquipment) {
+                        if (ItemPicker.Show($"##{slot}", slot, ref equipItem)) {
+                            applicableEquipment.ItemId = equipItem.ItemId;
+                            dirty = true;
+                        }
+                    } else if (equipment is ApplicableBonus applicableBonus) {
+                        if (ItemPicker.Show($"##{slot}", slot, ref equipItem)) {
+                            applicableBonus.BonusItemId = equipItem.Id.Id;
+                            dirty = true;
+                        }
+                    } else {
+                        var name = equipItem.Name;
+                        ImGui.InputText("##itemName", ref name, 64, ImGuiInputTextFlags.ReadOnly);
+                    }
+
+                    AdvancedMaterialsDisplay.ShowAdvancedMaterialsDisplay(equipment, $"{slot.PrettyName()}");
+                    ImGui.SameLine();
+                    DrawDyePicker(false);
+
+                    ImGui.EndGroup();
+                
+                    dirty |= ModListDisplay.Show(equipment, $"{slot.PrettyName()}", displayOnly: flags.HasFlag(EquipmentDisplayFlags.NoModEditing), includeCustomizePlus: !flags.HasFlag(EquipmentDisplayFlags.NoCustomizePlus));
+                }
+            }
+            
             ItemIcon.Draw(slot, equipItem);
             if (flags.HasFlag(EquipmentDisplayFlags.EnableCustomItemPicker)) {
                 if (flags.HasFlag(EquipmentDisplayFlags.EnableCustomItemPicker) && ImGui.IsPopupOpen($"CustomItemPicker_{slot}")) {
@@ -148,6 +199,10 @@ public static class EquipmentDisplay {
                 using (ImRaii.PushColor(ImGuiCol.Border, ImGuiColors.DalamudViolet))
                 using (var popup = ImRaii.Popup($"CustomItemPicker_{slot}")) {
                     if (popup.Success) {
+                        if (flags.HasFlag(EquipmentDisplayFlags.Compact)) {
+                            DrawInputs();
+                        }
+                        
                         using (ImRaii.Child($"CustomItemPickerScroll_{slot}", (s * 1.35f) with { Y = s.Y * 10 }, false, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
                             if (ImGui.IsWindowAppearing()) _quickSwitchFrameCounter = 0;
 
@@ -218,42 +273,23 @@ public static class EquipmentDisplay {
             var contextCharacter = character ?? ActiveCharacter;
             if (contextCharacter != null && !flags.CheckAll(EquipmentDisplayFlags.ContextNoSetToCurrent | EquipmentDisplayFlags.ContextNoClearSlot)) {
                 dirty |= HandleSlotContextMenu($"{slot.ToName()}##ItemContext", slot, equipment, contextCharacter, folderGuid, flags, (a) => a.Equipment[slot]);
-
             }
 
-            ImGui.SameLine();
-            using (ImRaii.Group()) {
-                ImGui.SetNextItemWidth(s.X - s.Y + ImGui.GetStyle().ItemSpacing.X - (equipment is ApplicableEquipment ? s.Y * 2 + ImGui.GetStyle().ItemSpacing.X * 2 : 0));
-
-                ImGui.BeginGroup();
-
-                if (equipment is ApplicableEquipment applicableEquipment) {
-                    if (ItemPicker.Show($"##{slot}", slot, ref equipItem)) {
-                        applicableEquipment.ItemId = equipItem.ItemId;
-                        dirty = true;
-                    }
-                } else if (equipment is ApplicableBonus applicableBonus) {
-                    if (ItemPicker.Show($"##{slot}", slot, ref equipItem)) {
-                        applicableBonus.BonusItemId = equipItem.Id.Id;
-                        dirty = true;
-                    }
-                } else {
-                    var name = equipItem.Name;
-                    ImGui.InputText("##itemName", ref name, 64, ImGuiInputTextFlags.ReadOnly);
+            if (!flags.HasFlag(EquipmentDisplayFlags.Compact)) {
+                ImGui.SameLine();
+                DrawInputs();
+            } else {
+                ImGui.SameLine();
+                using (ImRaii.Group()) {
+                    DrawDyePicker(false);
+                    ImGui.NewLine();
+                    AdvancedMaterialsDisplay.ShowAdvancedMaterialsDisplay(equipment, $"{slot.PrettyName()}");
+                    
+                    ModListDisplay.ShowModLinkButton(equipment);
                 }
-
-                AdvancedMaterialsDisplay.ShowAdvancedMaterialsDisplay(equipment, $"{slot.PrettyName()}");
-                if (equipment is ApplicableEquipment ae) {
-                    ImGui.SameLine();
-                    dirty |= StainPicker.Show($"{slot}, Stain 1##{slot}_stain1", ref ae.Stain.Stain, new Vector2(s.Y));
-                    ImGui.SameLine();
-                    dirty |= StainPicker.Show($"{slot}, Stain 2##{slot}_stain2", ref ae.Stain.Stain2, new Vector2(s.Y));
-                }
-
-                ImGui.EndGroup();
-                
-                dirty |= ModListDisplay.Show(equipment, $"{slot.PrettyName()}", displayOnly: flags.HasFlag(EquipmentDisplayFlags.NoModEditing), includeCustomizePlus: !flags.HasFlag(EquipmentDisplayFlags.NoCustomizePlus));
             }
+            
+            
         }
         return dirty;
     }
@@ -310,6 +346,14 @@ public static class EquipmentDisplay {
                     }
                 }
             }
+
+            if (flags.HasFlag(EquipmentDisplayFlags.ContextShowSaveSlot)) {
+                if (getApplicable != null && applicable is ApplicableBonus or ApplicableEquipment && ImGui.MenuItem($"Save {slot.ToName()} Equipment")) {
+                    Plugin.MainWindow.IsOpen = true;
+                    Plugin.MainWindow.OpenPage(new EditItemPage(character, Guid.Empty, ItemConfigFile.CreateFromLocalPlayer(character, Guid.Empty, slot)));
+                }
+            }
+            
 
             ImGui.EndPopup();
         }
