@@ -100,6 +100,49 @@ public static class GlamourerIpc {
             { "Enabled", true }
         };
         
+         void AddMaterial(ApplicableMaterial material) {
+            if (material.Mode == "Legacy") {
+                materials[material.Index] = new JObject {
+                    ["Mode"] = "Legacy",
+                    ["DiffuseR"] = material.DiffuseR,
+                    ["DiffuseG"] = material.DiffuseG,
+                    ["DiffuseB"] = material.DiffuseB,
+                    ["SpecularR"] = material.SpecularR,
+                    ["SpecularG"] = material.SpecularG,
+                    ["SpecularB"] = material.SpecularB,
+                    ["SpecularA"] = material.SpecularA,
+                    ["EmissiveR"] = material.EmissiveR,
+                    ["EmissiveG"] = material.EmissiveG,
+                    ["EmissiveB"] = material.EmissiveB,
+                    ["Gloss"] = material.Gloss,
+                    ["Enabled"] = material.Apply,
+                    ["Revert"] = false
+                };
+            } else if (material.Mode == "Dawntrail") {
+                materials[material.Index] = new JObject {
+                    ["Mode"] = "Dawntrail",
+                    ["DiffuseR"] = material.DiffuseR,
+                    ["DiffuseG"] = material.DiffuseG,
+                    ["DiffuseB"] = material.DiffuseB,
+                    ["SpecularR"] = material.SpecularR,
+                    ["SpecularG"] = material.SpecularG,
+                    ["SpecularB"] = material.SpecularB,
+                    ["EmissiveR"] = material.EmissiveR,
+                    ["EmissiveG"] = material.EmissiveG,
+                    ["EmissiveB"] = material.EmissiveB,
+                    ["Metalness"] = material.Metalness,
+                    ["Roughness"] = material.Roughness,
+                    ["Sheen"] = material.Sheen,
+                    ["SheenTint"] = material.SheenTint,
+                    ["SheenAperture"] = material.SheenAperture,
+                    ["Enabled"] = material.Apply,
+                    ["Revert"] = false
+                };
+            } else {
+                PluginLog.Error($"Invalid Material Mode: {material.Mode}");
+            }
+        }
+
         if (outfitEquipment.Apply) {
             if (outfitEquipment.HatVisible.Apply) {
                 equipment["Hat"] = new JObject { { "Apply", true }, { "Show", outfitEquipment.HatVisible.Toggle } };
@@ -117,8 +160,6 @@ public static class GlamourerIpc {
                 equipment["VieraEars"] = new JObject { { "Apply", true }, { "Show", outfitEquipment.VieraEarsVisible.Toggle } };
             }
             
-
-            
             foreach (var slot in Common.GetGearSlots()) {
                 if (outfitEquipment[slot].Apply) {
                     foreach (var (mIndex, mValue) in stateMaterials.Where(k => k.Key.ToHumanSlot() == slot)) {
@@ -126,21 +167,7 @@ public static class GlamourerIpc {
                     }
 
                     foreach (var material in outfitEquipment[slot].Materials) {
-                        materials[material.Index] = new JObject {
-                            ["DiffuseR"] = material.DiffuseR,
-                            ["DiffuseG"] = material.DiffuseG,
-                            ["DiffuseB"] = material.DiffuseB,
-                            ["SpecularR"] = material.SpecularR,
-                            ["SpecularG"] = material.SpecularG,
-                            ["SpecularB"] = material.SpecularB,
-                            ["SpecularA"] = material.SpecularA,
-                            ["EmissiveR"] = material.EmissiveR,
-                            ["EmissiveG"] = material.EmissiveG,
-                            ["EmissiveB"] = material.EmissiveB,
-                            ["Gloss"] = material.Gloss,
-                            ["Enabled"] = material.Apply,
-                            ["Revert"] = false
-                        };
+                        AddMaterial(material);
                     }
                 }
             }
@@ -155,21 +182,7 @@ public static class GlamourerIpc {
                     }
                     
                     foreach (var material in cjWeapons.MainHand.Materials) {
-                        materials[material.Index] = new JObject {
-                            ["DiffuseR"] = material.DiffuseR,
-                            ["DiffuseG"] = material.DiffuseG,
-                            ["DiffuseB"] = material.DiffuseB,
-                            ["SpecularR"] = material.SpecularR,
-                            ["SpecularG"] = material.SpecularG,
-                            ["SpecularB"] = material.SpecularB,
-                            ["SpecularA"] = material.SpecularA,
-                            ["EmissiveR"] = material.EmissiveR,
-                            ["EmissiveG"] = material.EmissiveG,
-                            ["EmissiveB"] = material.EmissiveB,
-                            ["Gloss"] = material.Gloss,
-                            ["Enabled"] = material.Apply,
-                            ["Revert"] = false
-                        };
+                        AddMaterial(material);
                     }
                 }
                 
@@ -179,26 +192,11 @@ public static class GlamourerIpc {
                     }
                     
                     foreach (var material in cjWeapons.OffHand.Materials) {
-                        materials[material.Index] = new JObject {
-                            ["DiffuseR"] = material.DiffuseR,
-                            ["DiffuseG"] = material.DiffuseG,
-                            ["DiffuseB"] = material.DiffuseB,
-                            ["SpecularR"] = material.SpecularR,
-                            ["SpecularG"] = material.SpecularG,
-                            ["SpecularB"] = material.SpecularB,
-                            ["SpecularA"] = material.SpecularA,
-                            ["EmissiveR"] = material.EmissiveR,
-                            ["EmissiveG"] = material.EmissiveG,
-                            ["EmissiveB"] = material.EmissiveB,
-                            ["Gloss"] = material.Gloss,
-                            ["Enabled"] = material.Apply,
-                            ["Revert"] = false
-                        };
+                        AddMaterial(material);
                     }
                 }
             }
         }
-        
         
         obj.Add("Customize", customize);
         obj.Add("Equipment", equipment);

@@ -28,8 +28,9 @@ public static class AdvancedMaterialsDisplay {
                 } else {
                     using (ImRaii.PushColor(ImGuiCol.FrameBg, Vector4.Zero))
                     using (ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(3, ImGui.GetStyle().CellPadding.Y))) {
-                        if (ImGui.BeginTable("materialsTable", 4)) {
+                        if (ImGui.BeginTable("materialsTable", 7)) {
                             foreach (var material in item.Materials) {
+                                ImGui.TableNextRow();
                                 ImGui.TableNextColumn();
                                 var t = $"{material.MaterialValueIndex.MaterialString()} {material.MaterialValueIndex.RowString()}";
                                 ImGui.SetNextItemWidth(ImGui.CalcTextSize(t).X + ImGui.GetStyle().FramePadding.X * 2);
@@ -40,10 +41,20 @@ public static class AdvancedMaterialsDisplay {
                                 ImGui.ColorButton("Specular", new Vector4(material.SpecularR, material.SpecularG, material.SpecularB, 1));
                                 ImGui.SameLine();
                                 ImGui.ColorButton("Emissive", new Vector4(material.EmissiveR, material.EmissiveG, material.EmissiveB, 1));
-                                ImGui.TableNextColumn();
-                                ImGui.Text($"{material.Gloss}");
-                                ImGui.TableNextColumn();
-                                ImGui.TextUnformatted($"{material.SpecularA * 100}%");
+
+                                if (material.Mode == "Legacy") {
+                                    ImGui.TableNextColumn();
+                                    ImGui.Text($"{material.Gloss}");
+                                    ImGui.TableNextColumn();
+                                    ImGui.TextUnformatted($"{material.SpecularA * 100}%");
+                                } else if (material.Mode == "Dawntrail") {
+                                    ImGui.TableNextColumn();
+                                    ImGui.Text($"Metalness({material.Metalness * 100}%)");
+                                    ImGui.TableNextColumn();
+                                    ImGui.Text($"Metalness({material.Roughness * 100}%)");
+                                    ImGui.TableNextColumn();
+                                    ImGui.Text($"Sheen({material.Sheen * 100}%, {material.SheenAperture}, {material.SheenTint})");
+                                }
                             }
 
                             ImGui.EndTable();

@@ -2,6 +2,7 @@
 
 public class GlamourerMaterial {
     public bool Revert;
+    public string Mode;
     public float DiffuseR;
     public float DiffuseG;
     public float DiffuseB;
@@ -13,5 +14,10 @@ public class GlamourerMaterial {
     public float EmissiveG;
     public float EmissiveB;
     public float Gloss;
+    public float Metalness;
+    public float Roughness;
+    public float Sheen;
+    public float SheenTint;
+    public float SheenAperture;
     public bool Enabled;
 }
