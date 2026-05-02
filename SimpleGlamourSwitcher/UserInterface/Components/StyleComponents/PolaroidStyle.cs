@@ -56,7 +56,7 @@ public record PolaroidStyle : StyleProvider<PolaroidStyle> {
         }
         
         using (ImRaii.PushIndent()) {
-            ImRaii.IEndObject? group = null;
+            var group = false;
             
             if (flags.HasFlag(PolaroidStyleEditorFlags.ShowPreview)) {
                 if (flags.HasFlag(PolaroidStyleEditorFlags.ActiveFrameColours)) {
@@ -71,7 +71,8 @@ public record PolaroidStyle : StyleProvider<PolaroidStyle> {
                 ImGui.SameLine();
 
                 if (ImGui.GetContentRegionAvail().X > 300 * ImGuiHelpers.GlobalScale) {
-                    group = ImRaii.Group();
+                    group = true;
+                    ImGui.BeginGroup();
                 } else {
                     ImGui.NewLine();
                 }
@@ -112,8 +113,8 @@ public record PolaroidStyle : StyleProvider<PolaroidStyle> {
                 edited |= ColourEdit4($"Active Frame Colour##{header}", ref style.FrameActiveColour);
                 edited |= ColourEdit4($"Hovered Frame Colour##{header}", ref style.FrameHoveredColour);
             }
-            
-            group?.Dispose();
+
+            if (group) ImGui.EndGroup();
         }
 
         return edited;

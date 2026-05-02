@@ -60,7 +60,7 @@ public static class CustomizePlusTemplateEditor {
                 var inputStyle = new TextInputStyle() { PadTop = false, FramePadding = new Vector2(8, 4), BorderSize = 1};
                 
                 if (CustomizePlus.TryGetTemplatesFromProfile(profile, out var templates)) {
-                    using var _ = templates.Count > 10 ? ImRaii.Child("scrolling_templates", new Vector2(ImGui.GetContentRegionAvail().X, 260 * ImGuiHelpers.GlobalScale)) : ImRaii.Group();
+                    using var _ = ImRaii.Child("scrolling_templates", new Vector2(ImGui.GetContentRegionAvail().X, 260 * ImGuiHelpers.GlobalScale));
                     
                     foreach (var template in templates) {
                         var configured = equipment.CustomizePlusTemplateConfigs.Find(tc => tc.TemplateId == template.UniqueId);

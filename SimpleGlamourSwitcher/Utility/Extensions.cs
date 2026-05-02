@@ -199,7 +199,7 @@ public static class Extensions {
             /* MRD / PLD */ case 3 or 21: return equipType == FullEquipType.Axe && equipSlot == EquipSlot.MainHand;
             /* LNC / PLD */ case 4 or 22: return equipType == FullEquipType.Lance && equipSlot == EquipSlot.MainHand;
             /* ARC / PLD */ case 5 or 23: return equipType == FullEquipType.Bow && equipSlot == EquipSlot.MainHand || equipType == FullEquipType.BowOff && equipSlot == EquipSlot.OffHand;
-            /* CNJ / WHM / THM / BLM */ case 6 or 7 or 24 or 25: return equipType is FullEquipType.Staff or FullEquipType.Wand && equipSlot == EquipSlot.MainHand || equipType == FullEquipType.Shield && equipSlot == EquipSlot.OffHand; 
+            /* CNJ / WHM / THM / BLM */ case 6 or 7 or 24 or 25: return equipType is FullEquipType.StaffBlm or FullEquipType.StaffWhm or FullEquipType.Wand && equipSlot == EquipSlot.MainHand || equipType == FullEquipType.Shield && equipSlot == EquipSlot.OffHand; 
             /* ACN / SMN / SCH */ case 26 or 27 or 28: return equipType == FullEquipType.Book && equipSlot == EquipSlot.MainHand;
             /* ROG / NIN */ case 29 or 30: return equipType == FullEquipType.Daggers && equipSlot == EquipSlot.MainHand || equipType == FullEquipType.DaggersOff && equipSlot == EquipSlot.OffHand;
         }

@@ -95,6 +95,7 @@ public class NpcCustomizeSet : IAsyncDataContainer, IReadOnlyList<NpcData>
                 Customize = customize,
                 ModelId   = row.ModelChara.RowId,
                 Id        = id,
+                NameId    = new BNpcNameId(id),
                 Kind      = ObjectKind.EventNpc,
             };
 
@@ -139,7 +140,6 @@ public class NpcCustomizeSet : IAsyncDataContainer, IReadOnlyList<NpcData>
             {
                 Customize = customize,
                 ModelId   = baseRow.ModelChara.RowId,
-                Id        = baseRow.RowId,
                 Kind      = ObjectKind.BattleNpc,
             };
             ApplyNpcEquip(ref ret, equip);
@@ -147,7 +147,7 @@ public class NpcCustomizeSet : IAsyncDataContainer, IReadOnlyList<NpcData>
             foreach (var bnpcNameId in bnpcNameIds)
             {
                 if (bNpcs.TryGetValue(bnpcNameId.Id, out var name) && !name.IsNullOrWhitespace())
-                    list.Add(ret with { Name = name });
+                    list.Add(ret with { Name = name, Id = baseRow.RowId, NameId = bnpcNameId });
             }
         }
 
