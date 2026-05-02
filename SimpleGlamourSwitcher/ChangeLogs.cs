@@ -3,6 +3,14 @@ using static SimpleGlamourSwitcher.UserInterface.Page.ChangeLogPage;
 
 internal static class ChangeLogs {
     internal static void Draw() {
+        ChangelogFor("1.3.3.0", () => {
+            Change("Added ability to save individual items.");
+            Change("Added ability to recall saved individual items from the active equipment window.");
+            Change("Added ability to convert outfits that only change a single item into new format.");
+            Change("Added ability to assign commands to be executed when switching to/from a character.");
+            Change("Added ability to move saved entries to another folder from the editor.");
+            Change("Added a compact view for the active gear window.");
+        });
         ChangelogFor("1.3.2.0", () => {
             Change("Added better support for mods installed and updated using Heliosphere.");
             Change("Added ability for individual character outfits to link to shared outfits.");
