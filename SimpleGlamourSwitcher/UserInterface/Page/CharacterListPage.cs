@@ -98,6 +98,7 @@ public class CharacterListPage : Page {
     }
     
     public override void DrawCenter(ref WindowControlFlags controlFlags) {
+        using var scroll = ImRaii.Child("scrollCharacterList", ImGui.GetContentRegionAvail());
         if (characters == null) {
             ImGuiExt.CenterText("Loading Characters...", centerHorizontally: true, centerVertically: true, shadowed: true);
             return;

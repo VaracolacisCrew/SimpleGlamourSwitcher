@@ -1,14 +1,10 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
-using FFXIVClientStructs.Interop;
 using Penumbra.GameData.Enums;
 using Penumbra.GameData.Files.MaterialStructs;
 using Penumbra.GameData.Interop;
 
 namespace SimpleGlamourSwitcher.IPC.Glamourer;
-
-using CsMaterial = FFXIVClientStructs.FFXIV.Client.Graphics.Render.Material;
 
 // Adjusted from Glamourer
 //      https://github.com/Ottermandias/Glamourer/blob/1cc7c2f0cd6a4bc738044a63227c9c6e7ff19848/Glamourer/Interop/Material/MaterialValueIndex.cs
@@ -72,43 +68,6 @@ public readonly record struct MaterialValueIndex(MaterialValueIndex.DrawObjectTy
             _ => Model.Null
         };
         return model.IsCharacterBase;
-    }
-
-    public unsafe bool TryGetTextures(Actor actor, out ReadOnlySpan<Pointer<Texture>> textures, out ReadOnlySpan<Pointer<CsMaterial>> materials) {
-        if (!TryGetModel(actor, out var model) || SlotIndex >= model.AsCharacterBase->SlotCount || model.AsCharacterBase->ColorTableTexturesSpan.Length < (SlotIndex + 1) * MaterialsPerModel) {
-            textures = [];
-            materials = [];
-            return false;
-        }
-
-        var from = SlotIndex * MaterialsPerModel;
-        textures = model.AsCharacterBase->ColorTableTexturesSpan.Slice(from, MaterialsPerModel);
-        materials = model.AsCharacterBase->MaterialsSpan.Slice(from, MaterialsPerModel);
-        return true;
-    }
-
-    public unsafe bool TryGetTextures(Actor actor, out ReadOnlySpan<Pointer<Texture>> textures) {
-        if (!TryGetModel(actor, out var model) || SlotIndex >= model.AsCharacterBase->SlotCount || model.AsCharacterBase->ColorTableTexturesSpan.Length < (SlotIndex + 1) * MaterialsPerModel) {
-            textures = [];
-            return false;
-        }
-
-        var from = SlotIndex * MaterialsPerModel;
-        textures = model.AsCharacterBase->ColorTableTexturesSpan.Slice(from, MaterialsPerModel);
-        return true;
-    }
-
-    public unsafe bool TryGetTexture(ReadOnlySpan<Pointer<Texture>> textures, out Texture** texture) {
-        if (MaterialIndex >= textures.Length || textures[MaterialIndex].Value == null) {
-            texture = null;
-            return false;
-        }
-
-        fixed (Pointer<Texture>* ptr = textures) {
-            texture = (Texture**)ptr + MaterialIndex;
-        }
-
-        return true;
     }
 
     public static MaterialValueIndex FromKey(uint key) {
